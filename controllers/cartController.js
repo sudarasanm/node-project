@@ -3,7 +3,8 @@ const Menu = require('../models/Menu');
 
 
 exports.addToCart = async (req, res) => {
-  const { userId, menuId, quantity } = req.body;
+  const userId = req.user.id;
+  const { menuItemId, quantity } = req.body;
 
   try {
     let cart = await Cart.findOne({ userId });
@@ -12,21 +13,23 @@ exports.addToCart = async (req, res) => {
       cart = new Cart({ userId, items: [] });
     }
 
-    const itemIndex = cart.items.findIndex(item => item.menuId === menuId);
+    const itemIndex = cart.items.findIndex(item => item.menuItemId.toString() === menuItemId);
+
     if (itemIndex > -1) {
+      // Item already exists in the cart, update quantity
       cart.items[itemIndex].quantity += quantity;
     } else {
-      cart.items.push({ menuId, quantity });
+      // Item does not exist, add new item to cart
+      cart.items.push({ menuItemId, quantity });
     }
 
     await cart.save();
-    res.status(200).json({ msg: 'Item added to cart', cart });
+    res.status(200).json(cart);
   } catch (err) {
-    console.error(`Error adding item to cart: ${err.message}`);
+    console.error(err.message);
     res.status(500).send('Server error');
   }
 };
-
 
 exports.getCart = async (req, res) => {
   const { userId } = req.params;
