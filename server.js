@@ -8,7 +8,7 @@ dotenv.config();
 
 const authRoutes = require('./routes/authRoutes');
 const menu = require('./routes/menu');
-
+const cart = require('./routes/cart')
 
 const app = express();
 
@@ -23,6 +23,7 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
 
 app.use('/api/auth', authRoutes);
 app.use('/api/menu', menu);
+app.use('/api/cart', cart);
 
 
 const PORT = process.env.PORT || 3333;

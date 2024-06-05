@@ -3,27 +3,82 @@ const Menu = require('../models/Menu');
 
 
 exports.addToCart = async (req, res) => {
+  const { userId, menuId, quantity } = req.body;
+
   try {
-    const { userId, menuItemId } = req.body;
     let cart = await Cart.findOne({ userId });
+
     if (!cart) {
       cart = new Cart({ userId, items: [] });
     }
 
-    const menuItem = await Menu.findById(menuItemId);
-    if (!menuItem) {
-        
-      return res.status(404).json({ msg: 'Menu item not found' });
+    const itemIndex = cart.items.findIndex(item => item.menuId === menuId);
+    if (itemIndex > -1) {
+      cart.items[itemIndex].quantity += quantity;
+    } else {
+      cart.items.push({ menuId, quantity });
     }
 
-   
-    cart.items.push(menuItem);
+    await cart.save();
+    res.status(200).json({ msg: 'Item added to cart', cart });
+  } catch (err) {
+    console.error(`Error adding item to cart: ${err.message}`);
+    res.status(500).send('Server error');
+  }
+};
+
+
+exports.getCart = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const cart = await Cart.findOne({ userId }).populate('items.menuId');
+    if (!cart) {
+      return res.status(404).json({ msg: 'Cart not found' });
+    }
+
+    res.status(200).json(cart);
+  } catch (err) {
+    console.error(`Error fetching cart: ${err.message}`);
+    res.status(500).send('Server error');
+  }
+};
+
+
+exports.removeFromCart = async (req, res) => {
+  const { userId, menuId } = req.body;
+
+  try {
+    const cart = await Cart.findOne({ userId });
+    if (!cart) {
+      return res.status(404).json({ msg: 'Cart not found' });
+    }
+
+    cart.items = cart.items.filter(item => item.menuId !== menuId);
 
     await cart.save();
-
-    res.status(200).json({ msg: 'Menu item added to cart successfully', cart });
+    res.status(200).json({ msg: 'Item removed from cart', cart });
   } catch (err) {
-    console.error(`Error adding menu item to cart: ${err.message}`);
+    console.error(`Error removing item from cart: ${err.message}`);
+    res.status(500).send('Server error');
+  }
+};
+
+
+exports.clearCart = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const cart = await Cart.findOne({ userId });
+    if (!cart) {
+      return res.status(404).json({ msg: 'Cart not found' });
+    }
+
+    cart.items = [];
+    await cart.save();
+    res.status(200).json({ msg: 'Cart cleared', cart });
+  } catch (err) {
+    console.error(`Error clearing cart: ${err.message}`);
     res.status(500).send('Server error');
   }
 };

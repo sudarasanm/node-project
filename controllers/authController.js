@@ -8,54 +8,54 @@ const adminAuth = require("../middleware/authMiddleware");
 
 
 
-exports.register = [
-  adminAuth,
-  async (req, res) => {
-    const { username, employeeId, password } = req.body;
+// exports.register = [
+//   adminAuth,
+//   async (req, res) => {
+//     const { username, employeeId, password } = req.body;
 
-    try {
-      const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{6,})/;
-      if (!password.match(passwordRegex)) {
-        return res.status(400).json({
-          Error:
-            "Password must be at least 6 characters long and include at least one number and one special character.",
-        });
-      }
+//     try {
+//       const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{6,})/;
+//       if (!password.match(passwordRegex)) {
+//         return res.status(400).json({
+//           Error:
+//             "Password must be at least 6 characters long and include at least one number and one special character.",
+//         });
+//       }
 
-      let employeeIdcheck = await User.findOne({ employeeId });
-      if (employeeIdcheck) {
-        return res.status(400).json({ Error: "employeeId already exists" });
-      }
+//       let employeeIdcheck = await User.findOne({ employeeId });
+//       if (employeeIdcheck) {
+//         return res.status(400).json({ Error: "employeeId already exists" });
+//       }
 
-      let usernamecheck = await User.findOne({ username });
-      if (usernamecheck) {
-        return res.status(400).json({ Error: "username already exists" });
-      }
+//       let usernamecheck = await User.findOne({ username });
+//       if (usernamecheck) {
+//         return res.status(400).json({ Error: "username already exists" });
+//       }
 
-      user = new User({
-        username,
-        employeeId,
-        password,
-      });
+//       user = new User({
+//         username,
+//         employeeId,
+//         password,
+//       });
 
-      const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(password, salt);
+//       const salt = await bcrypt.genSalt(10);
+//       user.password = await bcrypt.hash(password, salt);
 
-      await user.save();
+//       await user.save();
 
-      const token = generateToken(user.id);
+//       const token = generateToken(user.id);
 
-      const userid = user.id;
+//       const userid = user.id;
 
-      res
-        .status(201)
-        .json({ token, msg: "You have successfully registered", userid });
-    } catch (err) {
-      console.error(err.message);
-      res.status(500).send("Server error");
-    }
-  },
-];
+//       res
+//         .status(201)
+//         .json({ token, msg: "You have successfully registered", userid });
+//     } catch (err) {
+//       console.error(err.message);
+//       res.status(500).send("Server error");
+//     }
+//   },
+// ];
 
 exports.userLogin = async (req, res) => {
   const { employeeId, password } = req.body;
